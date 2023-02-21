@@ -1,17 +1,31 @@
 import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  connectAuthEmulator,
+} from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDpz5iJ8niqIR4Is-xM1KANOfiQ5CML2-E",
-  authDomain: "bluudit.firebaseapp.com",
-  projectId: "bluudit",
-  storageBucket: "bluudit.appspot.com",
-  messagingSenderId: "948896431661",
-  appId: "1:948896431661:web:adf46abc79b6b1adc202a4",
-  measurementId: "G-QE4ZMVTGTD",
+  apiKey: "AIzaSyDC4k4BYAhwL_-wszua9sNL6sobGs8LAH0",
+  authDomain: "bluudit-fe53b.firebaseapp.com",
+  databaseURL:
+    "https://bluudit-fe53b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bluudit-fe53b",
+  storageBucket: "bluudit-fe53b.appspot.com",
+  messagingSenderId: "819081934280",
+  appId: "1:819081934280:web:9f7be4645d48c648b73cfd",
+  measurementId: "G-0FHR8ZWD35",
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const analytics = getAnalytics();
+
+export const auth = getAuth(app);
+if (location.hostname === "localhost") {
+  connectAuthEmulator(auth, "http://localhost:9099");
+}
+
+// createUserWithEmailAndPassword(auth, "test@huh.pl", "123");
 
 export { app, analytics };
