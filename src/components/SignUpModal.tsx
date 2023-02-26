@@ -1,20 +1,25 @@
-import React, { useRef, useState } from "react";
-import { checkIfEmailUnused } from "../firebase/auth";
+import React, { useState } from "react";
+import { checkIfEmailUnused, createNewUser } from "../firebase/auth";
+import isEmailValid from "../utils/isEmailValid";
 
 const SignUpModal = () => {
   const [email, setEmail] = useState("");
-  const emailInputRef = useRef<null | HTMLInputElement>(null);
-  const userEmail = useRef<null | string>(null);
-  const validateEmail = async (email: string) => {
-    console.log(email);
-    if (!email) return;
+  const [isEmailAccepted, setIsEmailAccepted] = useState(false);
+  const handleEmailCheck = async (email: string) => {
+    if (!email || !isEmailValid(email)) return;
     const emailResponse = await checkIfEmailUnused(email);
-    // show error
-    if (!emailResponse) return;
-    userEmail.current = emailResponse;
+    // todo: implement show error/success
+    if (emailResponse) {
+      if (emailResponse === "used") {
+        console.log("Email is in use");
+        return;
+      } else {
+        console.log("email available");
+        setIsEmailAccepted(true)
+        return;
+      }
+    }
   };
-
-  // const emailSignUp =
 
   return (
     <div>
@@ -24,25 +29,21 @@ const SignUpModal = () => {
         By continuing, you agree are setting up a Bluudit account and agree to
         our User Agreement and Privacy Policy.
       </p>
-      <form action="" onSubmit={(e) => e.preventDefault()}>
-        <label htmlFor="email-register-input"></label>
+      <form onSubmit={(e) => e.preventDefault()}>
+        <label htmlFor="email-register-input">Email</label>
         <input
           type="email"
           id="email-register-input"
           name="email-register-input"
-          ref={emailInputRef}
+          placeholder="Email"
+          pattern={`[a-z0-9]+@[a-z]+.[a-z]{2,3}`}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <button
-          disabled={emailInputRef.current?.checkValidity()}
+          disabled={!isEmailValid(email)}
           onClick={(e) => {
-            if (
-              emailInputRef.current &&
-              emailInputRef.current.checkValidity()
-            ) {
-              validateEmail(emailInputRef.current.value);
-            }
+            handleEmailCheck(email);
           }}
         >
           Continue
