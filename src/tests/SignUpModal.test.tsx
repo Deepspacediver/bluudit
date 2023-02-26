@@ -45,19 +45,43 @@ describe("SignUpModal", () => {
     ).toBeDisabled();
   });
 
-  it.todo("shows next form elements when email is accepted", async () => {
+  it("should make button enabled when valid email", async () => {
     const user = userEvent.setup();
-    /*  vi.mock("../firebase/auth", () => ({
-      checkIfEmailUnused: vi.fn(() => Promise.resolve("test@test.com")),
-    })); */
+    render(<SignUpModal />);
+    await user.type(screen.getByRole("textbox"), "tester@test.com");
+    expect(
+      screen.getByRole("button", {
+        name: "Continue",
+      })
+    ).toBeEnabled();
+  });
+
+  it("email input remains if the email is already in use", async () => {
+    const user = userEvent.setup();
     render(<SignUpModal />);
     const input = screen.getByRole("textbox");
-    await userEvent.type(input, "original@test.com");
+    await userEvent.type(input, "test@test.com");
     await user.click(
       screen.getByRole("button", {
         name: "Continue",
       })
     );
-    expect(input).not.toBeInTheDocument();
+    expect(input).toBeInTheDocument();
   });
+
+  it.todo(
+    "shows nickane and password form elements when email is accepted",
+    async () => {
+      const user = userEvent.setup();
+      render(<SignUpModal />);
+      const input = screen.getByRole("textbox");
+      await userEvent.type(input, "original@test.com");
+      await user.click(
+        screen.getByRole("button", {
+          name: "Continue",
+        })
+      );
+      expect(input).not.toBeInTheDocument();
+    }
+  );
 });
