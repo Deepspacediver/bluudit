@@ -2,12 +2,27 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SignUpModal from "../components/SignUpModal";
-import { checkIfEmailUnused } from "../firebase/auth";
+import { checkIfEmailUnused } from "../firebase/authSetup";
 
-describe("SignUpModal", () => {
+vi.mock("../firebase/authSetup", async () => {
+  const actual = (await vi.importActual("../firebase/authSetup")) as object;
+  return {
+    ...actual,
+    checkIfEmailUnused: vi.fn(),
+  };
+});
+
+const mockedCheckEmail = vi.mocked(checkIfEmailUnused, true);
+
+describe("SignUpModal initial stage testing", () => {
   it("renders input for email", () => {
     render(<SignUpModal />);
     expect(screen.getByRole("textbox")).toBeInTheDocument();
+  });
+
+  it("renders error span", () => {
+    render(<SignUpModal />);
+    expect(screen.getByTestId("error-span")).toBeInTheDocument();
   });
 
   it("marks input as valid with proper email format", async () => {
@@ -22,6 +37,7 @@ describe("SignUpModal", () => {
     const user = userEvent.setup();
     render(<SignUpModal />);
     const input = screen.getByRole("textbox");
+
     await user.type(input, "not email");
     expect(input).toHaveValue("not email");
     expect(input).toBeInvalid();
@@ -60,6 +76,8 @@ describe("SignUpModal", () => {
     const user = userEvent.setup();
     render(<SignUpModal />);
     const input = screen.getByRole("textbox");
+    mockedCheckEmail.mockReturnValueOnce(Promise.resolve("used"));
+    const error = screen.getByTestId("error-span");
     await userEvent.type(input, "test@test.com");
     await user.click(
       screen.getByRole("button", {
@@ -67,21 +85,23 @@ describe("SignUpModal", () => {
       })
     );
     expect(input).toBeInTheDocument();
+    expect(error).toHaveTextContent("Email already in use");
+    expect(mockedCheckEmail).toHaveBeenCalled();
+    expect(mockedCheckEmail).toHaveReturnedWith("used");
   });
 
-  it.todo(
-    "shows nickane and password form elements when email is accepted",
-    async () => {
-      const user = userEvent.setup();
-      render(<SignUpModal />);
-      const input = screen.getByRole("textbox");
-      await userEvent.type(input, "original@test.com");
-      await user.click(
-        screen.getByRole("button", {
-          name: "Continue",
-        })
-      );
-      expect(input).not.toBeInTheDocument();
-    }
-  );
+  it("does not show error if email unused", async () => {
+    const user = userEvent.setup();
+    render(<SignUpModal />);
+    const input = screen.getByRole("textbox");
+    mockedCheckEmail.mockReturnValueOnce(Promise.resolve("original@mail.com"));
+    await userEvent.type(input, "original@mail.com");
+    await user.click(
+      screen.getByRole("button", {
+        name: "Continue",
+      })
+    );
+    expect(mockedCheckEmail).toHaveReturnedWith("original@mail.com");
+    expect(screen.queryByTestId("email-container")).not.toBeInTheDocument();
+  });
 });
