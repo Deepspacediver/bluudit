@@ -1,25 +1,45 @@
 import React, { useState } from "react";
-import { checkIfEmailUnused, createNewUser } from "../firebase/auth";
+import { checkIfEmailUnused, createNewUser } from "../firebase/authSetup";
 import isEmailValid from "../utils/isEmailValid";
+import ErrorMessage from "./ErrorMessage";
 
 const SignUpModal = () => {
   const [email, setEmail] = useState("");
   const [isEmailAccepted, setIsEmailAccepted] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const handleEmailCheck = async (email: string) => {
     if (!email || !isEmailValid(email)) return;
     const emailResponse = await checkIfEmailUnused(email);
     // todo: implement show error/success
     if (emailResponse) {
       if (emailResponse === "used") {
+        setEmailError("Email already in use");
         console.log("Email is in use");
         return;
       } else {
         console.log("email available");
-        setIsEmailAccepted(true)
+        setEmailError("");
+        setIsEmailAccepted(true);
         return;
       }
     }
   };
+
+  const emailPhase = (
+    <div className="email-container" data-testid="email-container">
+      <label htmlFor="email-register-input">Email</label>
+      <input
+        type="email"
+        id="email-register-input"
+        name="email-register-input"
+        placeholder="Email"
+        pattern={`[a-z0-9]+@[a-z]+.[a-z]{2,3}`}
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <ErrorMessage message={emailError} />
+    </div>
+  );
 
   return (
     <div>
@@ -30,16 +50,7 @@ const SignUpModal = () => {
         our User Agreement and Privacy Policy.
       </p>
       <form onSubmit={(e) => e.preventDefault()}>
-        <label htmlFor="email-register-input">Email</label>
-        <input
-          type="email"
-          id="email-register-input"
-          name="email-register-input"
-          placeholder="Email"
-          pattern={`[a-z0-9]+@[a-z]+.[a-z]{2,3}`}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        {!isEmailAccepted && emailPhase}
         <button
           disabled={!isEmailValid(email)}
           onClick={(e) => {
