@@ -7,14 +7,14 @@ import { auth } from "./firebaseConfig";
 import { FirebaseError } from "firebase/app";
 
 const checkIfEmailUnused = async (email: string) => {
-  console.log(email)
   try {
-    const isInUse = await fetchSignInMethodsForEmail(auth, email);
-    if (isInUse) return email;
-    return false;
+    const emailResponse = await fetchSignInMethodsForEmail(auth, email);
+    if (emailResponse.length === 0) return email;
+    return "used";
   } catch (error) {
     if (error instanceof FirebaseError) {
       console.log(error.code);
+      return error.code;
     }
   }
 };
