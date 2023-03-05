@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SignUpModal from "../components/SignUpModal";
 import { checkIfEmailUnused } from "../firebase/authSetup";
+import { useReducer } from "react";
 
 vi.mock("../firebase/authSetup", async () => {
   const actual = (await vi.importActual("../firebase/authSetup")) as object;
@@ -17,7 +18,7 @@ const mockedCheckEmail = vi.mocked(checkIfEmailUnused, true);
 describe("SignUpModal initial stage testing", () => {
   it("renders input for email", () => {
     render(<SignUpModal />);
-    expect(screen.getByRole("textbox")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: /email/i })).toBeInTheDocument();
   });
 
   it("renders error span", () => {
@@ -27,7 +28,7 @@ describe("SignUpModal initial stage testing", () => {
 
   it("marks input as valid with proper email format", async () => {
     render(<SignUpModal />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByRole("textbox", { name: /email/i });
     await userEvent.type(input, "tester@test.com");
     expect(input).toHaveValue("tester@test.com");
     expect(input).toBeValid();
@@ -36,7 +37,7 @@ describe("SignUpModal initial stage testing", () => {
   it("marks input as invalid when provided wrong email format", async () => {
     const user = userEvent.setup();
     render(<SignUpModal />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByRole("textbox", { name: /email/i });
 
     await user.type(input, "not email");
     expect(input).toHaveValue("not email");
@@ -64,7 +65,10 @@ describe("SignUpModal initial stage testing", () => {
   it("should make button enabled when valid email", async () => {
     const user = userEvent.setup();
     render(<SignUpModal />);
-    await user.type(screen.getByRole("textbox"), "tester@test.com");
+    await user.type(
+      screen.getByRole("textbox", { name: /email/i }),
+      "tester@test.com"
+    );
     expect(
       screen.getByRole("button", {
         name: "Continue",
@@ -72,10 +76,10 @@ describe("SignUpModal initial stage testing", () => {
     ).toBeEnabled();
   });
 
-  it("email input remains if the email is already in use", async () => {
+  it("checks that email input remains if the email is already in use", async () => {
     const user = userEvent.setup();
     render(<SignUpModal />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByRole("textbox", { name: /email/i });
     mockedCheckEmail.mockReturnValueOnce(Promise.resolve("used"));
     const error = screen.getByTestId("error-span");
     await userEvent.type(input, "test@test.com");
@@ -93,7 +97,7 @@ describe("SignUpModal initial stage testing", () => {
   it("does not show error if email unused", async () => {
     const user = userEvent.setup();
     render(<SignUpModal />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByRole("textbox", { name: /email/i });
     mockedCheckEmail.mockReturnValueOnce(Promise.resolve("original@mail.com"));
     await userEvent.type(input, "original@mail.com");
     await user.click(
