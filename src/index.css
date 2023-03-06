@@ -29,7 +29,7 @@ select {
   font: inherit;
 }
 
-button{
+button {
   cursor: pointer;
 }
 
@@ -45,4 +45,8 @@ h6 {
 #root,
 #__next {
   isolation: isolate;
+}
+
+input[type="email"]:where(:invalid:not(:focus)) {
+  color: red;
 }

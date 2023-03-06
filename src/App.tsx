@@ -1,7 +1,8 @@
 import React from "react";
+import SignUpModal from "./components/SignUpModal";
 
-const App = () =>  {
-    return <h1>Hello World</h1>;
-}
+const App = () => {
+  return <SignUpModal />;
+};
 
 export default App;
