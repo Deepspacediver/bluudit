@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { prettyDOM, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SignUpModal from "../components/SignUpModal";
 import { checkIfEmailUnused } from "../firebase/authSetup";
@@ -14,6 +14,20 @@ vi.mock("../firebase/authSetup", async () => {
 });
 
 const mockedCheckEmail = vi.mocked(checkIfEmailUnused, true);
+
+async function setupLoginAndPassword() {
+  const user = userEvent.setup();
+  render(<SignUpModal />);
+  mockedCheckEmail.mockReturnValueOnce(Promise.resolve("original@mail.com"));
+  const input = screen.getByRole("textbox", { name: /email/i });
+  await userEvent.type(input, "original@mail.com");
+  await user.click(
+    screen.getByRole("button", {
+      name: "Continue",
+    })
+  );
+  return user;
+}
 
 describe("SignUpModal initial stage testing", () => {
   it("renders input for email", () => {
@@ -107,5 +121,26 @@ describe("SignUpModal initial stage testing", () => {
     );
     expect(mockedCheckEmail).toHaveReturnedWith("original@mail.com");
     expect(screen.queryByTestId("email-container")).not.toBeInTheDocument();
+  });
+});
+
+describe("Username & Password testing", () => {
+  it("renders elements for username & password phase", async () => {
+    await setupLoginAndPassword();
+    const usernameAndPwdContainer = screen.getByTestId(
+      "username-password-container"
+    );
+    expect(usernameAndPwdContainer).toBeInTheDocument();
+    expect(
+      within(usernameAndPwdContainer).getByRole("textbox", {
+        name: /username/i,
+      })
+    ).toBeInTheDocument();
+    expect(
+      within(usernameAndPwdContainer).getByLabelText(/password/i)
+    ).toBeInTheDocument();
+    const signUpBtn = screen.getByRole("button", { name: /sign up/i });
+    expect(signUpBtn).toBeInTheDocument();
+    expect(signUpBtn).toBeDisabled();
   });
 });
