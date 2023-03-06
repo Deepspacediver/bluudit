@@ -7,6 +7,9 @@ const SignUpModal = () => {
   const [email, setEmail] = useState("");
   const [isEmailAccepted, setIsEmailAccepted] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
   const handleEmailCheck = async (email: string) => {
     if (!email || !isEmailValid(email)) return;
     const emailResponse = await checkIfEmailUnused(email);
@@ -25,10 +28,14 @@ const SignUpModal = () => {
     }
   };
 
+  const isRegisterReady = (password: string, name: string) =>
+    password.length >= 6;
+
   const emailPhase = (
     <div className="email-container" data-testid="email-container">
       <label htmlFor="email-register-input">Email</label>
       <input
+        key={1}
         type="email"
         id="email-register-input"
         name="email-register-input"
@@ -41,6 +48,22 @@ const SignUpModal = () => {
     </div>
   );
 
+  const usernameAndPwdPhase = (
+    <div data-testid="username-password-container">
+      <label htmlFor="username-input">Username</label>
+      <input type="text" id="username-input" name="username-input" key={2} />
+      <label htmlFor="password-input">Password</label>
+      <input
+        type="password"
+        name="password-input"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+        id="password-input"
+        key={3}
+      />
+    </div>
+  );
+
   return (
     <div>
       <button>&times;</button>
@@ -50,14 +73,18 @@ const SignUpModal = () => {
         our User Agreement and Privacy Policy.
       </p>
       <form onSubmit={(e) => e.preventDefault()}>
-        {!isEmailAccepted && emailPhase}
+        {!isEmailAccepted ? emailPhase : usernameAndPwdPhase}
         <button
-          disabled={!isEmailValid(email)}
+          disabled={
+            !isEmailAccepted
+              ? !isEmailValid(email)
+              : !isRegisterReady(password, username)
+          }
           onClick={(e) => {
             handleEmailCheck(email);
           }}
         >
-          Continue
+          {!isEmailAccepted ? "Continue" : "Sign Up"}
         </button>
       </form>
     </div>
