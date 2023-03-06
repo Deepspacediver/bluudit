@@ -5,6 +5,7 @@ import {
   connectAuthEmulator,
 } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDC4k4BYAhwL_-wszua9sNL6sobGs8LAH0",
@@ -19,13 +20,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics();
+// const analytics = getAnalytics();
 
 export const auth = getAuth(app);
+export const firestoreDB = getFirestore(app)
 if (location.hostname === "localhost") {
   connectAuthEmulator(auth, "http://localhost:9099");
+  connectFirestoreEmulator(firestoreDB, "localhost", 8080)
 }
 
 // createUserWithEmailAndPassword(auth, "test@huh.pl", "123");
 
-export { app, analytics };
+export { app };
