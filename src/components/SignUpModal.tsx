@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { checkIfEmailUnused, createNewUser } from "../firebase/authSetup";
+import { checkUsernameAvailable } from "../firebase/firestoreSetup";
+import debounce from "lodash.debounce";
 import isEmailValid from "../utils/isEmailValid";
 import ErrorMessage from "./ErrorMessage";
 
@@ -9,6 +11,7 @@ const SignUpModal = () => {
   const [emailError, setEmailError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  // const [isUsernameAccepted, setIsUsernameAccepted] = useState(false);
 
   const handleEmailCheck = async (email: string) => {
     if (!email || !isEmailValid(email)) return;
@@ -28,8 +31,25 @@ const SignUpModal = () => {
     }
   };
 
-  const isRegisterReady = (password: string, name: string) =>
-    password.length >= 6;
+  const isRegisterReady = (password: string, username: string) =>
+    password.length >= 6 && username;
+
+  const handleUsernameChange = debounce(async (e: ChangeEvent) => {
+    try {
+      const input = e.target as HTMLInputElement;
+      if (!input.value) {
+        setUsername("");
+        return;
+      }
+      const usernameResponse = await checkUsernameAvailable(input.value);
+      console.log({ usernameResponse });
+      if (usernameResponse) {
+        setUsername(usernameResponse);
+      } else setUsername("");
+    } catch (error) {
+      console.error(error);
+    }
+  }, 500);
 
   const emailPhase = (
     <div className="email-container" data-testid="email-container">
@@ -51,13 +71,19 @@ const SignUpModal = () => {
   const usernameAndPwdPhase = (
     <div data-testid="username-password-container">
       <label htmlFor="username-input">Username</label>
-      <input type="text" id="username-input" name="username-input" key={2} />
+      <input
+        type="text"
+        id="username-input"
+        name="username-input"
+        key={2}
+        onChange={(e) => handleUsernameChange(e)}
+      />
       <label htmlFor="password-input">Password</label>
       <input
         type="password"
         name="password-input"
         value={password}
-        onChange={e => setPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value)}
         id="password-input"
         key={3}
       />
