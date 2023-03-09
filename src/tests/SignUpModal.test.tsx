@@ -1,9 +1,15 @@
 import { describe, it, expect, vi } from "vitest";
-import { prettyDOM, render, screen, within } from "@testing-library/react";
+import {
+  prettyDOM,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SignUpModal from "../components/SignUpModal";
 import { checkIfEmailUnused } from "../firebase/authSetup";
-import { useReducer } from "react";
+import { checkUsernameAvailable } from "../firebase/firestoreSetup";
 
 vi.mock("../firebase/authSetup", async () => {
   const actual = (await vi.importActual("../firebase/authSetup")) as object;
@@ -14,6 +20,18 @@ vi.mock("../firebase/authSetup", async () => {
 });
 
 const mockedCheckEmail = vi.mocked(checkIfEmailUnused, true);
+
+vi.mock("../firebase/firestoreSetup", async () => {
+  const actual = (await vi.importActual(
+    "../firebase/firestoreSetup"
+  )) as object;
+  return {
+    ...actual,
+    checkUsernameAvailable: vi.fn(),
+  };
+});
+
+const mockedCheckUsername = vi.mocked(checkUsernameAvailable, true);
 
 async function setupLoginAndPassword() {
   const user = userEvent.setup();
@@ -142,5 +160,30 @@ describe("Username & Password testing", () => {
     const signUpBtn = screen.getByRole("button", { name: /sign up/i });
     expect(signUpBtn).toBeInTheDocument();
     expect(signUpBtn).toBeDisabled();
+  });
+
+  it("keeps the button disabled if the username is taken", async () => {
+    const user = await setupLoginAndPassword();
+    mockedCheckUsername.mockReturnValueOnce(Promise.resolve(false));
+    await user.type(
+      screen.getByRole("textbox", { name: /username/i }),
+      "takenUser"
+    );
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    expect(screen.getByRole("button", { name: /sign up/i })).toBeDisabled();
+  });
+
+  it("enables the button if the username is available", async () => {
+    const user = await setupLoginAndPassword();
+    mockedCheckUsername.mockReturnValueOnce(Promise.resolve("availableName"));
+    await user.type(
+      screen.getByRole("textbox", { name: /username/i }),
+      "availableName"
+    );
+    await user.type(screen.getByLabelText(/password/i), "password123");
+    await waitFor(() => {
+      const btn = screen.getByRole("button", { name: /sign up/i });
+      expect(btn).toBeEnabled();
+    });
   });
 });
