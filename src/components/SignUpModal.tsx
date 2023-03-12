@@ -11,7 +11,6 @@ const SignUpModal = () => {
   const [emailError, setEmailError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  // const [isUsernameAccepted, setIsUsernameAccepted] = useState(false);
 
   const handleEmailCheck = async (email: string) => {
     if (!email || !isEmailValid(email)) return;
@@ -95,7 +94,7 @@ const SignUpModal = () => {
       <button>&times;</button>
       <h3>Sign Up</h3>
       <p>
-        By continuing, you agree are setting up a Bluudit account and agree to
+        By continuing, you are setting up a Bluudit account and agree to
         our User Agreement and Privacy Policy.
       </p>
       <form onSubmit={(e) => e.preventDefault()}>
